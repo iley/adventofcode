@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("the answer is %d\n", n_trees);
+    printf("the answer is %d", n_trees);
 
     return EXIT_SUCCESS;
 }
