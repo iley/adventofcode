@@ -20,15 +20,15 @@ int read_items(int items[]) {
 bool find_sum(int items[], size_t n_items, int target, int* out_a, int* out_b, int* out_c) {
     for (size_t i = 0; i < n_items; i++) {
         for (size_t j = 0; j < i; j++) {
-        for (size_t k = 0; k < i; k++) {
-            if (items[i] + items[j] + items[k] == target) {
-                *out_a = items[i];
-                *out_b = items[j];
-                *out_c = items[k];
-                return true;
+            for (size_t k = 0; k < i; k++) {
+                if (items[i] + items[j] + items[k] == target) {
+                    *out_a = items[i];
+                    *out_b = items[j];
+                    *out_c = items[k];
+                    return true;
+                }
             }
         }
-    }
     }
     return false;
 }
