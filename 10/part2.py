@@ -2,9 +2,7 @@
 import os
 import sys
 
-
 joltages = [0]
-
 
 for line in sys.stdin:
     try:
@@ -26,5 +24,16 @@ def combinations(joltages, start=1):
         return 1
 
 
-c = combinations(joltages)
+def parts(joltages):
+    i = 0
+    for j in range(i+1, len(joltages)):
+        if joltages[j] - joltages[j-1] == 3:
+            yield joltages[i:j+1]
+            i = j
+
+
+c = 1
+for p in parts(joltages):
+    c *= combinations(p)
+
 print(c)
