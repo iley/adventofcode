@@ -19,19 +19,21 @@ type constraint struct {
 }
 
 func validate(val int, cons constraint) bool {
-	return cons.from1 <= val && val <= cons.to1 && cons.from2 <= val && val <= cons.to2
+	return (cons.from1 <= val && val <= cons.to1) || (cons.from2 <= val && val <= cons.to2)
 }
 
+type ruleset map[string]constraint
+
 type dataset struct {
-	fields        map[string]constraint
+	rules         ruleset
 	myTicket      []int
 	nearbyTickets [][]int
 }
 
 func load(input io.Reader) *dataset {
-	fieldRe := regexp.MustCompile(`(\w+): (\d+)-(\d+) or (\d+)-(\d+)`)
+	ruleRe := regexp.MustCompile(`(\w+): (\d+)-(\d+) or (\d+)-(\d+)`)
 	data := dataset{
-		fields:        make(map[string]constraint),
+		rules:         make(map[string]constraint),
 		myTicket:      []int{},
 		nearbyTickets: [][]int{},
 	}
@@ -47,7 +49,7 @@ func load(input io.Reader) *dataset {
 		}
 
 		if stage == 0 {
-			m := fieldRe.FindStringSubmatch(scanner.Text())
+			m := ruleRe.FindStringSubmatch(scanner.Text())
 			if m == nil {
 				continue
 			}
@@ -58,7 +60,7 @@ func load(input io.Reader) *dataset {
 				from2: parseInt(m[4]),
 				to2:   parseInt(m[5]),
 			}
-			data.fields[f] = c
+			data.rules[f] = c
 			continue
 		}
 
@@ -101,6 +103,23 @@ func parseTicket(str string) []int {
 	return res
 }
 
+func invalidFields(t []int, rules ruleset) []int {
+	res := []int{}
+	for _, val := range t {
+		valid := false
+		for _, rule := range rules {
+			// fmt.Printf("%d rule %+v\n", val, rule)
+			if validate(val, rule) {
+				valid = true
+			}
+		}
+		if !valid {
+			res = append(res, val)
+		}
+	}
+	return res
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s FILE\n", os.Args[0])
@@ -116,6 +135,13 @@ func main() {
 	defer input.Close()
 
 	data := load(input)
-	fmt.Printf("%+v\n", data)
 
+	sum := 0
+	for _, t := range data.nearbyTickets {
+		fields := invalidFields(t, data.rules)
+		for _, f := range fields {
+			sum += f
+		}
+	}
+	fmt.Println(sum)
 }
