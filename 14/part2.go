@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"os"
 	"regexp"
 	"strconv"
@@ -50,6 +51,67 @@ func load(input io.Reader) []instruction {
 	return program
 }
 
+func expandAddr(addr int64, mask string) []int64 {
+	addrs := []int64{}
+
+	ones := int64(0)
+	xpos := []int{}
+
+	for i := 0; i < len(mask); i++ {
+		ones = ones << 1
+		if mask[i] == '1' {
+			ones = ones | 1
+		} else if mask[i] == 'X' {
+			xpos = append(xpos, len(mask)-1-i)
+		}
+	}
+
+	for x := 0; x < (1 << len(xpos)); x++ {
+		a := addr | ones
+		for i := 0; i < len(xpos); i++ {
+			if x&(1<<i) == 0 {
+				a = (a &^ (1 << xpos[i]))
+			} else {
+				a = (a | (1 << xpos[i]))
+			}
+		}
+		addrs = append(addrs, a)
+	}
+	return addrs
+}
+
+func execute(program []instruction) map[int64]int64 {
+	var mask string
+	mem := make(map[int64]int64)
+	for i, inst := range program {
+		fmt.Printf("%d/%d\n", i, len(program))
+
+		if inst.opcode == "mask" {
+			mask = inst.mask
+		} else if inst.opcode == "mem" {
+			addrs := expandAddr(inst.addr, mask)
+			for _, addr := range addrs {
+				mem[addr] = inst.val
+			}
+		}
+	}
+	return mem
+}
+
+func memorySum(mem map[int64]int64) big.Int {
+	var s big.Int
+	for _, val := range mem {
+		s.Add(&s, big.NewInt(val))
+	}
+	return s
+}
+
+func printProgram(program []instruction) {
+	for i := range program {
+		fmt.Printf("%+v\n", program[i])
+	}
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s FILE\n", os.Args[0])
@@ -66,7 +128,7 @@ func main() {
 
 	program := load(input)
 
-	for i := range program {
-		fmt.Printf("%+v\n", program[i])
-	}
+	mem := execute(program)
+	sum := memorySum(mem)
+	fmt.Println(sum.String())
 }
