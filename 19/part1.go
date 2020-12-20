@@ -23,6 +23,42 @@ type rule struct {
 	seq2   []int
 }
 
+type ruleset []rule
+
+// match at the start, return rest
+func (rs ruleset) match(idx int, msg string) string {
+	//fmt.Printf("match(%d, %s)\n", idx, msg)
+	r := rs[idx]
+	if r.letter != 0 {
+		//fmt.Printf("match letter %c\n", r.letter)
+		if len(msg) > 0 && msg[0] == r.letter {
+			return msg[1:]
+		}
+		return msg
+	}
+	if r.seq2 != nil {
+		r1 := rs.matchSeq(r.seq1, msg)
+		if len(r1) < len(msg) {
+			return r1
+		}
+		return rs.matchSeq(r.seq2, msg)
+	}
+	return rs.matchSeq(r.seq1, msg)
+}
+
+func (rs ruleset) matchSeq(seq []int, msg string) string {
+	//fmt.Printf("matchSeq(%v, %s)\n", seq, msg)
+	rest := msg
+	for _, idx := range seq {
+		r := rs.match(idx, rest)
+		if len(r) == len(rest) {
+			return msg
+		}
+		rest = r
+	}
+	return rest
+}
+
 func load(input io.Reader) (map[int]rule, []string) {
 	scanner := bufio.NewScanner(input)
 
@@ -114,18 +150,24 @@ func main() {
 		}
 	}
 
-	rules := make([]rule, maxIdx+1)
+	rules := make(ruleset, maxIdx+1)
 
 	for k, v := range ruleMap {
 		rules[k] = v
 	}
 
-	fmt.Printf("loaded %d rules and %d messages\n", len(ruleMap), len(messages))
-	for _, r := range rules {
-		fmt.Printf("%+v\n", r)
-	}
-	for _, m := range messages {
-		fmt.Printf("'%+v'\n", m)
-	}
+	fmt.Printf("loaded %d rules and %d messages\n", len(rules), len(messages))
+	//for _, r := range rules {
+	//fmt.Printf("%+v\n", r)
+	//}
 
+	count := 0
+	for _, msg := range messages {
+		rest := rules.match(0, msg)
+		fmt.Printf("match %s -> %s\n", msg, rest)
+		if rest == "" {
+			count++
+		}
+	}
+	fmt.Println(count)
 }
