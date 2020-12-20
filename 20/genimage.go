@@ -413,7 +413,7 @@ func main() {
 
 	f := fitTiles(tiles, size, hint)
 
-	tileInnerSize := 10
+	tileInnerSize := 8
 	imgRows := tileInnerSize * size
 	imgCols := tileInnerSize * size
 
@@ -421,7 +421,7 @@ func main() {
 		for col := 0; col < imgCols; col++ {
 			tr := f[row/tileInnerSize][col/tileInnerSize]
 			t := tr.tinfo.variants[tr.varid]
-			if t[row%tileInnerSize][col%tileInnerSize] == 0 {
+			if t[row%tileInnerSize+1][col%tileInnerSize+1] == 0 {
 				fmt.Print(".")
 			} else {
 				fmt.Print("#")
