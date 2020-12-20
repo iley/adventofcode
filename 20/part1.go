@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -218,7 +219,7 @@ func copyField(f [][]*tileRef, size int) [][]*tileRef {
 	return c
 }
 
-func fitTiles(tiles map[int]tile, size int) [][]*tileRef {
+func fitTiles(tiles map[int]tile, size, hint int) [][]*tileRef {
 	f := makeField(size)
 
 	tinfos := make(map[int]tileInfo)
@@ -226,7 +227,10 @@ func fitTiles(tiles map[int]tile, size int) [][]*tileRef {
 		tinfos[id] = makeTileInfo(tiles[id])
 	}
 
-	f, ok := tryFit(f, 0, 0, size, tinfos)
+	idx := neighbourIndex(tinfos)
+	fmt.Println("built neighbour index")
+
+	f, ok := tryFit(f, 0, 0, size, tinfos, idx, hint)
 	if !ok {
 		fmt.Println("could not fit tiles")
 	}
@@ -234,10 +238,16 @@ func fitTiles(tiles map[int]tile, size int) [][]*tileRef {
 	return f
 }
 
-func tryFit(field [][]*tileRef, row, col, size int, tinfos map[int]tileInfo) ([][]*tileRef, bool) {
-	// fmt.Printf("tryFit(%d, %d)\n", row, col)
-	printField(field, size)
-	fmt.Println()
+var lastUpdate time.Time
+
+func tryFit(field [][]*tileRef, row, col, size int, tinfos map[int]tileInfo, index map[int][]int, hint int) ([][]*tileRef, bool) {
+	// fmt.Printf("(%d, %d)\n", row, col)
+	if time.Since(lastUpdate) > time.Second {
+		fmt.Println(time.Now())
+		printField(field, size)
+		fmt.Println()
+		lastUpdate = time.Now()
+	}
 
 	if row >= size || col >= size {
 		return field, true
@@ -250,7 +260,29 @@ func tryFit(field [][]*tileRef, row, col, size int, tinfos map[int]tileInfo) ([]
 		nextCol = 0
 	}
 
+	neighbourFilter := map[int]bool{}
+	if row > 0 {
+		neighbour := field[row-1][col]
+		for _, id := range index[neighbour.id] {
+			neighbourFilter[id] = true
+		}
+	}
+	if col > 0 {
+		neighbour := field[row][col-1]
+		for _, id := range index[neighbour.id] {
+			neighbourFilter[id] = true
+		}
+	}
+
 	for tileid, tinfo := range tinfos {
+		if hint > 0 && row == 0 && col == 0 && tileid != hint {
+			continue
+		}
+
+		if len(neighbourFilter) > 0 && !neighbourFilter[tileid] {
+			continue
+		}
+
 		// exclude current tile
 		nextTinfos := make(map[int]tileInfo)
 		for k, v := range tinfos {
@@ -268,7 +300,7 @@ func tryFit(field [][]*tileRef, row, col, size int, tinfos map[int]tileInfo) ([]
 			nextField := copyField(field, size)
 			nextField[row][col] = tr
 
-			f, ok := tryFit(nextField, nextRow, nextCol, size, nextTinfos)
+			f, ok := tryFit(nextField, nextRow, nextCol, size, nextTinfos, index, hint)
 			if ok {
 				return f, true
 			}
@@ -286,24 +318,24 @@ func fits(field [][]*tileRef, row, col, size int, tr *tileRef) bool {
 			return false
 		}
 	}
-	if col < size-1 {
-		right := field[row][col+1]
-		if right != nil && bids[RIGHT] != right.tinfo.borderIds[right.varid][LEFT] {
-			return false
-		}
-	}
-	if row < size-1 {
-		lower := field[row+1][col]
-		if lower != nil && bids[BOTTOM] != lower.tinfo.borderIds[lower.varid][TOP] {
-			return false
-		}
-	}
 	if col > 0 {
 		left := field[row][col-1]
 		if left != nil && bids[LEFT] != left.tinfo.borderIds[left.varid][RIGHT] {
 			return false
 		}
 	}
+	//if col < size-1 {
+	//right := field[row][col+1]
+	//if right != nil && bids[RIGHT] != right.tinfo.borderIds[right.varid][LEFT] {
+	//return false
+	//}
+	//}
+	//if row < size-1 {
+	//lower := field[row+1][col]
+	//if lower != nil && bids[BOTTOM] != lower.tinfo.borderIds[lower.varid][TOP] {
+	//return false
+	//}
+	//}
 	return true
 }
 
@@ -318,6 +350,36 @@ func printField(field [][]*tileRef, size int) {
 		}
 		fmt.Println()
 	}
+}
+
+func neighbourIndex(tinfos map[int]tileInfo) map[int][]int {
+	idx := map[int][]int{}
+	for id1, tinfo1 := range tinfos {
+		for id2, tinfo2 := range tinfos {
+			if haveCommonBorder(tinfo1, tinfo2) {
+				idx[id1] = append(idx[id1], id2)
+				idx[id2] = append(idx[id2], id1)
+			}
+		}
+	}
+	return idx
+}
+
+func haveCommonBorder(ti1, ti2 tileInfo) bool {
+	bidMap := make(map[int]bool)
+	for _, bids := range ti1.borderIds {
+		for _, bid := range bids {
+			bidMap[bid] = true
+		}
+	}
+	for _, bids := range ti2.borderIds {
+		for _, bid := range bids {
+			if bidMap[bid] {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func main() {
@@ -336,6 +398,15 @@ func main() {
 	// field size in tiles
 	size := int(i64)
 
+	hint := 0
+	if len(os.Args) >= 4 {
+		i64, err := strconv.ParseInt(os.Args[3], 10, 32)
+		if err != nil {
+			log.Fatal(err)
+		}
+		hint = int(i64)
+	}
+
 	input, err := os.Open(inputPath)
 	if err != nil {
 		log.Fatal(err)
@@ -349,7 +420,7 @@ func main() {
 		log.Fatalf("wrong size or tile #")
 	}
 
-	f := fitTiles(tiles, size)
+	f := fitTiles(tiles, size, hint)
 
 	printField(f, size)
 
