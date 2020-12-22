@@ -15,8 +15,8 @@ def load(input_file):
         if m is None:
             continue
         left, right = m.group(1), m.group(2)
-        ingridients = [ word.strip() for word in left.split(' ') if word.strip() != '' ]
-        allergens = [ word.strip() for word in right.split(', ') if word.strip() != '' ]
+        ingridients = set( word.strip() for word in left.split(' ') if word.strip() != '' )
+        allergens = set( word.strip() for word in right.split(', ') if word.strip() != '' )
 
         data.append((ingridients, allergens))
 
@@ -24,30 +24,38 @@ def load(input_file):
 
 
 data = load(sys.stdin)
-# for ing, allerg in data:
-    # print("%s | %s" % (','.join(ing), ','.join(allerg)))
 
-allergen_sets = {}
-
+ing_set_lists = defaultdict(list) # list of sets per allergen
 for ingridients, allergens in data:
+    for allergen in allergens:
+        ing_set_lists[allergen].append(set(ingridients))
+
+# print('ingridient sets')
+# for k, v in ing_set_lists.items():
+    # print("%s -> %s" % (k, v))
+
+possible_ingridients = {} # set per allergen
+for allergen, ing_sets in ing_set_lists.items():
+    for ing_set in ing_sets:
+        if allergen not in possible_ingridients:
+            possible_ingridients[allergen] = ing_set
+        else:
+            possible_ingridients[allergen] = possible_ingridients[allergen].intersection(ing_set)
+
+# print('possible ingridients')
+# for k, v in possible_ingridients.items():
+    # print("%s -> %s" % (k, v))
+
+candidate_ingridients = set()
+for ing_set in possible_ingridients.values():
+    candidate_ingridients = candidate_ingridients.union(ing_set)
+
+print('ingridients which might have allergens: %s' % ', '.join(candidate_ingridients))
+
+occurences = 0
+for ingridients, _ in data:
     for ing in ingridients:
-        if ing not in allergen_sets:
-            allergen_sets[ing] = []
-        allergen_sets[ing].append(set(allergens))
+        if ing not in candidate_ingridients:
+            occurences += 1
 
-print(allergen_sets)
-
-
-allergen_free_ingridients = []
-
-
-for ingridient, sets in allergen_sets.items():
-    possible_allergens = set()
-    for s in sets:
-        possible_allergens = possible_allergens.intersection(s)
-    if len(possible_allergens) == 0:
-        allergen_free_ingridients.append(ingridient)
-    print('possible allergens for %s are %s' % (ingridient, ', '.join(possible_allergens)))
-
-
-print('allergen-free ingridients are: ' + ', '. join(allergen_free_ingridients))
+print(occurences)
