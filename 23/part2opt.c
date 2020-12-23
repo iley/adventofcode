@@ -27,12 +27,13 @@ int main() {
     }
     printf("\n");
 
+    int cur = 0;
     for (int i = 0; i < STEPS; i++) {
-        int32_t curval = ring[0];
+        int32_t curval = ring[cur];
 
-        int32_t next1 = ring[1];
-        int32_t next2 = ring[2];
-        int32_t next3 = ring[3];
+        int32_t next1 = ring[(cur+1) % CUPS];
+        int32_t next2 = ring[(cur+2) % CUPS];
+        int32_t next3 = ring[(cur+3) % CUPS];
 
         int32_t destval = curval;
         do {
@@ -45,22 +46,17 @@ int main() {
 
         // remove
         int i;
-        for (i = 1; i < CUPS-3; i++) {
-            ring[i] = ring[i+3];
+        for (i = cur+1; i != cur; i = (i+1) % CUPS) {
+            ring[i] = ring[(i+3) % CUPS];
             if (ring[i] == destval) break;
         }
 
         // insert
-        ring[i+1] = next1;
-        ring[i+2] = next2;
-        ring[i+3] = next3;
+        ring[(i+1) % CUPS] = next1;
+        ring[(i+2) % CUPS] = next2;
+        ring[(i+3) % CUPS] = next3;
 
-        // rotatle left
-        int32_t head = ring[0];
-        for (int i = 0; i < CUPS-1; i++) {
-            ring[i] = ring[i+1];
-        }
-        ring[CUPS-1] = head;
+        cur = (cur + 1) % CUPS;
     }
 
     printf("---\n");

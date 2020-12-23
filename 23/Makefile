@@ -1,15 +1,23 @@
-BIN=part1 part2
+BIN=part1 part2 part2ll part2opt
 
-run: $(BIN) always
-	@echo "=== PART 1 ==="
+all: $(BIN)
+
+run_part1: part1 always
 	./part1
-	@echo "=== PART 2 ==="
+
+run_part2: part2 always
 	./part2
 
+run_part2ll: part2ll always
+	./part2ll
+
+run_part2opt: part2opt always
+	./part2opt
+
 $(BIN): %: %.c
-	clang -std=c17 -Wall -Werror -o $@ $<
+	$(CC) -std=c17 -Wall -Werror -O3 -o $@ $<
 
 clean:
 	rm -f $(BIN)
 
-.PHONY: always clean
+.PHONY: all always clean
