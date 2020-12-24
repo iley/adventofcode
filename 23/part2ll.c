@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -98,7 +99,7 @@ int main() {
 
     int64_t a = one->next->val;
     int64_t b = one->next->next->val;
-    printf("%ld * %ld = %ld\n", a, b, a * b);
+    printf("%"PRId64" * %"PRId64" = %"PRId64"\n", a, b, a * b);
 
     return EXIT_SUCCESS;
 }

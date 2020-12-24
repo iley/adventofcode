@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -74,7 +75,7 @@ int main() {
         if ( ring[i] == 1) {
             int64_t a = ring[(i+1) % CUPS];
             int64_t b = ring[(i+2) % CUPS];
-            printf("%ld * %ld = %ld\n", a, b, a * b);
+            printf("%"PRId64" * %"PRId64" = %"PRId64"\n", a, b, a * b);
             break;
         }
     }
