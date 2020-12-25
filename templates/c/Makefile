@@ -1,10 +1,12 @@
 BIN=part1 part2
 
-run: $(BIN) always
-	@echo "=== PART 1 ==="
-	./part1 < input.txt
-	@echo "=== PART 2 ==="
-	./part2 < input.txt
+all: $(BIN)
+
+run1: part1 always
+	./part1
+
+run2: part2 always
+	./part2
 
 $(BIN): %: %.c
 	clang -std=c17 -Wall -Werror -o $@ $<
@@ -12,4 +14,4 @@ $(BIN): %: %.c
 clean:
 	rm -f $(BIN)
 
-.PHONY: always clean
+.PHONY: all always clean run1 run2
