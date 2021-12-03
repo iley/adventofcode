@@ -1,20 +1,20 @@
 function most_common_bit(numbers, pos,    i, ones, zeroes) {
     for (i in numbers) {
-        if (substr(numbers[i], pos, 1) == 1) ones++;
-        else zeroes++;
+        if (substr(numbers[i], pos, 1) == 1) ones++
+        else zeroes++
     }
-    if (ones == zeroes) return 1;
-    else if (ones > zeroes) return 1;
+    if (ones == zeroes) return 1
+    else if (ones > zeroes) return 1
     else return 0
 }
 
 function least_common_bit(numbers, pos,    i, ones, zeroes) {
     for (i in numbers) {
-        if (substr(numbers[i], pos, 1) == 1) ones++;
-        else zeroes++;
+        if (substr(numbers[i], pos, 1) == 1) ones++
+        else zeroes++
     }
-    if (ones == zeroes) return 0;
-    else if (ones < zeroes) return 1;
+    if (ones == zeroes) return 0
+    else if (ones < zeroes) return 1
     else return 0
 }
 
