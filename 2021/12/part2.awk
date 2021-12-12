@@ -20,10 +20,12 @@ function maxval(dict,   k, max) {
 }
 
 BEGIN { FS = "-" }
+
 {
     graph[$1][length(graph[$1])+1] = $2
     graph[$2][length(graph[$2])+1] = $1
 }
+
 END {
     traverse("start")
     print npaths
