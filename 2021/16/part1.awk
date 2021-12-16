@@ -27,7 +27,7 @@ function parse_operator(    ver_sum, len, start_pos, npackets, i) {
         while (pos < start_pos + len)
             ver_sum += parse()
     } else {
-        npackets = parsebin(substr(packet, pos+8, 11))
+        npackets = parsebin(substr(packet, pos+7, 11))
         pos += 18
         for (i = 1; i <= npackets; i++)
             ver_sum += parse()
