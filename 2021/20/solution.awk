@@ -7,7 +7,7 @@ function read(r, c) {
     else return background
 }
 
-BEGIN { FS=""; STEPS=2 }
+BEGIN { FS=""; if (!STEPS) STEPS=2 }
 NR==1 { for (i = 1; i <= NF; i++) algo[i-1] = ($i == "#") ? 1 : 0 }
 NR >= 3 { for (i = 1; i <= NF; i++) if ($i == "#") map[NR-2, i] = 1 }
 END {
@@ -27,7 +27,7 @@ END {
         if (background == 0)
             background = algo[0]
         else
-            background = algo[0xff]
+            background = algo[511]
 
         for (idx in newmap) {
             split(idx, coords, SUBSEP)
