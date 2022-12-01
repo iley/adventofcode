@@ -1,4 +1,5 @@
 (ns clj-01.core (:gen-class))
+(require '[clojure.java.io :as io])
 
 (defn parse-input [lines]
   (map
@@ -9,7 +10,7 @@
       (partition-by (fn [ln] (= ln "")) lines))))
 
 (defn -main []
-  (with-open [rdr (clojure.java.io/reader "input.txt")]
+  (with-open [rdr (io/reader "input.txt")]
     (let [lines (line-seq rdr)
           groups (parse-input lines)
           sums (map (fn [grp] (reduce + 0 grp)) groups)]
