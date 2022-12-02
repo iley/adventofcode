@@ -13,6 +13,6 @@
   (with-open [rdr (io/reader "input.txt")]
     (let [lines (line-seq rdr)
           groups (parse-input lines)
-          sums (map (fn [grp] (reduce + 0 grp)) groups)]
+          sums (map (fn [grp] (reduce + grp)) groups)]
       (println (reduce max sums))
-      (println (reduce + 0 (take 3 (reverse (sort (vec sums)))))))))
+      (println (reduce + (take 3 (reverse (sort (vec sums)))))))))

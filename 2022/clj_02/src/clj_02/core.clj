@@ -13,13 +13,14 @@
    ["A" "Z"] "Y", ["B" "X"] "X", ["C" "Y"] "Z"})
 
 (defn part1 [input]
-  (reduce + 0
+  (reduce +
           (map (fn [entry] (+ (get shape-score (get entry 1))
                               (get winner-score entry)))
                input)))
 
 (defn part2 [input]
-  (part1 (map (fn [entry] [(get entry 0) (get part2-mapping entry)]) input)))
+  (part1 (map (fn [entry] [(get entry 0) (get part2-mapping entry)])
+              input)))
 
 (defn -main []
   (with-open [rdr (io/reader "input.txt")]
