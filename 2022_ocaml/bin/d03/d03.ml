@@ -1,8 +1,10 @@
 open Core
 
 let read_input filename =
-  let lines = In_channel.read_lines filename in
-  List.map lines ~f:(fun line ->
+  In_channel.read_lines filename
+
+let split_halves input =
+  List.map input ~f:(fun line ->
     let len = String.length line in
     let half_len = len / 2 in
     let first_half = String.sub line ~pos:0 ~len:half_len in
@@ -13,15 +15,16 @@ let read_input filename =
 let character_set str =
   String.to_list str |> Char.Set.of_list
 
-let offending_item first_half second_half =
-  let first_set = character_set first_half in
-  let second_set = character_set second_half in
-  let intersection = Set.inter first_set second_set in
+let string_intersection a b =
+  let set_a = character_set a in
+  let set_b = character_set b in
+  let intersection = Set.inter set_a set_b in
   let inter_list = Set.to_list intersection in
-  match inter_list with
-  | [x] -> x
-  | _ -> raise (Failure "expected one item")
+  String.of_char_list inter_list
 
+let offending_item first_half second_half =
+  let inter = string_intersection first_half second_half in
+  inter.[0]  (* there is always exactly one character *)
 
 let calculate_item_score item =
   let code_a = Char.to_int 'a' in
@@ -41,6 +44,26 @@ let part1 input =
   let score_sum = List.fold item_scores ~init:0 ~f:(+) in
   Printf.printf "Part 1: %d\n" score_sum
 
+let rec split_into_groups lst =
+  match lst with
+  | a :: b :: c :: rest -> (a, b, c) :: split_into_groups rest
+  | _ -> []
+
+let calculate_group_badge (a, b, c) =
+  let inter = string_intersection a (string_intersection b c) in
+  inter.[0]
+
+let part2 input =
+  let groups = split_into_groups input in
+  let badges = List.map groups ~f:calculate_group_badge in
+  let scores = List.map badges ~f:calculate_item_score in
+  let score_sum = List.fold scores ~init:0 ~f:(+) in
+  Printf.printf "Part 2: %d\n" score_sum
+
 let () =
   let input = read_input "bin/d03/input.txt" in
-  part1 input
+  let halves = split_halves input in
+  begin
+    part1 halves;
+    part2 input;
+  end
