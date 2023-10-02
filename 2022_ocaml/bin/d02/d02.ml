@@ -10,7 +10,7 @@ let string_of_shape mv =
   | Scissors -> "scissors"
 *)
 
-let parse_input_lines lines =
+let parse_input_lines_part1 lines =
   List.map lines ~f:(fun line ->
     let first_char = line.[0] in
     let second_char = line.[2] in  (* skip the whitespace *)
@@ -30,10 +30,6 @@ let parse_input_lines lines =
     in
     (their_shape, our_shape)
   )
-
-let read_input filename =
-  let lines = In_channel.read_lines filename in
-  parse_input_lines lines
 
 let calculate_shape_score shp =
   match shp with
@@ -61,7 +57,40 @@ let round_score (their_shape, our_shape) =
 let calculate_score input =
   List.map input ~f:round_score |> List.fold ~init:0 ~f:(+)
 
-let () =
-  let input = read_input "bin/d02/input.txt" in
+let part1 () =
+  let filename = "bin/d02/input.txt" in
+  let lines = In_channel.read_lines filename in
+  let input = parse_input_lines_part1 lines in
   let score = calculate_score input in
   Printf.printf "Part 1: %d\n" score
+
+let parse_input_lines_part2 lines =
+  List.map lines ~f:(fun line ->
+    let first_char = line.[0] in
+    let second_char = line.[2] in  (* skip the whitespace *)
+    match (first_char, second_char) with
+    (* X = lose, Y = draw, Z = win *)
+    | ('A', 'X') -> (Rock, Scissors)
+    | ('A', 'Y') -> (Rock, Rock)
+    | ('A', 'Z') -> (Rock, Paper)
+    | ('B', 'X') -> (Paper, Rock)
+    | ('B', 'Y') -> (Paper, Paper)
+    | ('B', 'Z') -> (Paper, Scissors)
+    | ('C', 'X') -> (Scissors, Paper)
+    | ('C', 'Y') -> (Scissors, Scissors)
+    | ('C', 'Z') -> (Scissors, Rock)
+    | _ -> raise (Failure ("invalid input: " ^ line))
+  )
+
+let part2 () =
+  let filename = "bin/d02/input.txt" in
+  let lines = In_channel.read_lines filename in
+  let input = parse_input_lines_part2 lines in
+  let score = calculate_score input in
+  Printf.printf "Part 1: %d\n" score
+
+let () =
+  begin
+    part1 ();
+    part2 ();
+  end
