@@ -22,4 +22,10 @@ let () =
   let elf_calories = read_input "bin/d01/input.txt" in
   let per_elf_calorie_sums = List.map elf_calories ~f:(List.fold ~f:(+) ~init:0) in
   let calorie_max = (List.max_elt per_elf_calorie_sums ~compare:Int.compare |> Option.value_exn) in
-  Printf.printf "Part 1: %d\n" calorie_max
+  let sorted_calorie_sums = List.sort per_elf_calorie_sums ~compare:Int.compare in
+  let top3 = List.slice sorted_calorie_sums (-3) 0 in
+  let top3_sum = List.fold top3 ~f:(+) ~init:0 in
+  begin
+    Printf.printf "Part 1: %d\n" calorie_max;
+    Printf.printf "Part 2: %d\n" top3_sum;
+  end
