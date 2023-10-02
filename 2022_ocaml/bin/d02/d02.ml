@@ -2,14 +2,6 @@ open Core
 
 type shape = Rock | Paper | Scissors
 
-(*
-let string_of_shape mv =
-  match mv with
-  | Rock -> "rock"
-  | Paper -> "paper"
-  | Scissors -> "scissors"
-*)
-
 let parse_input_lines_part1 lines =
   List.map lines ~f:(fun line ->
     let first_char = line.[0] in
