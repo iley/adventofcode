@@ -71,7 +71,9 @@ let read_input filename =
       (parse_box_positions first_block, parse_moves second_block)
   | _ -> raise (Failure "invalid input")
 
-let rec execute_script positions moves =
+type crate_model = CrateMover9000 | CrateMover9001
+
+let rec execute_script crate_model positions moves =
   match moves with
   | [] -> positions
   | {n_boxes; col_from; col_to} :: moves_tail ->
@@ -80,20 +82,30 @@ let rec execute_script positions moves =
       let col_from_old_value = List.nth_exn positions col_from in
       let col_to_old_value = List.nth_exn positions col_to in
       let boxes_to_move = String.sub col_from_old_value ~pos:0 ~len:n_boxes in
-      let col_to_new_value = (String.rev boxes_to_move) ^ col_to_old_value in
+      let boxes_to_move =
+        match crate_model with
+        | CrateMover9000 -> (String.rev boxes_to_move)
+        | CrateMover9001 -> boxes_to_move
+      in
+      let col_to_new_value = boxes_to_move ^ col_to_old_value in
       let col_from_new_value = (String.drop_prefix col_from_old_value n_boxes) in
       let new_positions =
           replace_nth col_from col_from_new_value positions
           |> replace_nth col_to col_to_new_value
       in
-      execute_script new_positions moves_tail
+      execute_script  crate_model new_positions moves_tail
+
+let list_top_boxes positions =
+    let top_boxes = List.map positions ~f:(fun pos -> pos.[0]) in
+    String.of_list top_boxes
 
 let () =
   let (box_positions, moves) = read_input "bin/d05/input.txt" in
-  let final_positions = execute_script box_positions moves in
+  let part1_positions = execute_script CrateMover9000 box_positions moves in
+  let part1_answer = list_top_boxes part1_positions in
+  let part2_positions = execute_script CrateMover9001 box_positions moves in
+  let part2_answer = list_top_boxes part2_positions in
   begin
-    List.iter final_positions ~f:(fun pos -> Printf.printf "%s\n" pos);
-    let top_boxes = List.map final_positions ~f:(fun pos -> pos.[0]) in
-    let part1_answer = String.of_list top_boxes in
-    Printf.printf "Part 1: %s\n" part1_answer
+    Printf.printf "Part 1: %s\n" part1_answer;
+    Printf.printf "Part 2: %s\n" part2_answer
   end
