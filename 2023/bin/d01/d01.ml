@@ -40,5 +40,5 @@ let () =
   let p2 = part_2 input in
   begin
     printf "Part 1: %d\n" p1;
-    printf "Part 1: %d\n" p2
+    printf "Part 2: %d\n" p2
   end
