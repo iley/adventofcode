@@ -40,9 +40,42 @@ let part1 cards =
     calculate_score (Set.length intersection)
   ) |> List.fold ~init:0 ~f:(+)
 
+let part2 cards =
+  let original_cards = List.mapi cards ~f:(fun i (winning, ours) ->
+    (i, winning, ours)
+  ) in
+  let has_winning_cards = ref true in
+  let cards = ref original_cards in
+  let total_cards = ref (List.length original_cards) in
+  begin
+    while !has_winning_cards do
+      let new_cards = ref [] in
+      begin
+        List.iter !cards ~f:(fun card ->
+          let (current_card_number, winning, ourds) = card in
+          let winning_set = Int.Set.of_list winning in
+          let our_set = Int.Set.of_list ourds in
+          let intersection = Set.inter winning_set our_set in
+          let n = Set.length intersection in
+          for i = current_card_number + 1 to (current_card_number + n) do
+            let following_card = List.nth_exn original_cards i in
+            let (_, following_winning, following_ours) = following_card in
+            new_cards := (current_card_number, following_winning, following_ours) :: !new_cards
+          done
+        );
+        has_winning_cards := List.length !new_cards > 0;
+        total_cards := !total_cards + List.length !new_cards;
+        cards := !new_cards
+      end
+    done;
+    !total_cards
+  end
+
+
 let () =
   let input = read_input "bin/d04/input.txt" in
   let cards = parse_input input in
   begin
-    printf "Part 1: %d\n" (part1 cards)
+    printf "Part 1: %d\n" (part1 cards);
+    printf "Part 2: %d\n" (part2 cards)
   end
