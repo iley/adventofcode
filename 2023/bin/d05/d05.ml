@@ -1,10 +1,88 @@
 open Core
 
+type range_t = {
+  dst_start: int;
+  src_start: int;
+  len: int;
+}
+
+type mapping_t = range_t list
+
+type almanach_t = {
+  seeds: int list;
+  mappings: mapping_t list;
+}
+
 let read_input filename =
   In_channel.read_lines filename
 
+let parse_seeds line =
+  let line = String.drop_prefix line 7 in
+  String.split line ~on:' ' |> List.map ~f:Int.of_string
+
+let parse_mappings lines =
+  let mappings = ref [] in
+  let current_mapping = ref [] in
+  begin
+    List.iter lines ~f:(fun line ->
+      if String.contains line ':' then (
+        if not (List.is_empty !current_mapping) then (
+          mappings := List.rev !current_mapping :: !mappings;
+          current_mapping := []
+        )
+      )
+      else if not (String.is_empty line) then (
+          let parts = String.split line ~on:' ' in
+          let dst_start = Int.of_string (List.nth_exn parts 0) in
+          let src_start = Int.of_string (List.nth_exn parts 1) in
+          let len = Int.of_string (List.nth_exn parts 2) in
+          current_mapping := { dst_start; src_start; len } :: !current_mapping
+      )
+    );
+    if not (List.is_empty !current_mapping) then
+      mappings := List.rev !current_mapping :: !mappings;
+    List.rev !mappings
+  end
+
+let parse_input lines : almanach_t =
+  let seeds_line = List.hd_exn lines in
+  let mappings_lines = List.drop lines 2 in
+  {
+    seeds = parse_seeds seeds_line;
+    mappings = parse_mappings mappings_lines;
+  }
+
+let translate (mapping : mapping_t) value =
+  let result = ref value in
+  let found = ref false in
+  begin
+    List.iter mapping ~f:(fun range ->
+      if not !found && (!result >= range.src_start && !result < range.src_start + range.len) then (
+        result := range.dst_start + (!result - range.src_start);
+        found := true
+      )
+    );
+    !result
+  end
+
+let part1 almanach =
+  let locations = List.map almanach.seeds ~f:(fun seed ->
+    printf "%d -> " seed;
+    let result = ref seed in
+    begin
+      List.iter almanach.mappings ~f:(fun mapping ->
+        result := translate mapping !result;
+        printf "%d -> " !result;
+      );
+      printf "\n";
+      !result;
+    end
+  ) in
+  List.min_elt locations ~compare:Int.compare |> Option.value_exn
+
 let () =
   let input = read_input "bin/d05/input.txt" in
-  List.iter input ~f:(fun line ->
-    Printf.printf "%s\n" line
-  )
+  let almanach = parse_input input in
+  begin
+    printf "Part 1: %d\n" (part1 almanach);
+  end
