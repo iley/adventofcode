@@ -52,15 +52,14 @@ let part2 cards =
       let new_cards = ref [] in
       begin
         List.iter !cards ~f:(fun card ->
-          let (current_card_number, winning, ourds) = card in
+          let (current_card_number, winning, ours) = card in
           let winning_set = Int.Set.of_list winning in
-          let our_set = Int.Set.of_list ourds in
+          let our_set = Int.Set.of_list ours in
           let intersection = Set.inter winning_set our_set in
           let n = Set.length intersection in
           for i = current_card_number + 1 to (current_card_number + n) do
             let following_card = List.nth_exn original_cards i in
-            let (_, following_winning, following_ours) = following_card in
-            new_cards := (current_card_number, following_winning, following_ours) :: !new_cards
+            new_cards := following_card :: !new_cards
           done
         );
         has_winning_cards := List.length !new_cards > 0;
@@ -70,7 +69,6 @@ let part2 cards =
     done;
     !total_cards
   end
-
 
 let () =
   let input = read_input "bin/d04/input.txt" in
