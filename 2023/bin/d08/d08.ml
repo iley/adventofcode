@@ -53,9 +53,56 @@ let part1 (instructions : instructions_t) : int =
   in
   walk "AAA" instructions.turns 0
 
+let is_start_node (node : string) : bool =
+  Char.O.(node.[2] = 'A')
+
+let is_end_node (node : string) : bool =
+  Char.O.(node.[2] = 'Z')
+
+let rec gcd a b =
+  if b = 0 then a
+  else gcd b (a mod b)
+
+let lcm a b =
+  if a = 0 || b = 0 then 0
+  else (a * b) / (gcd a b)
+
+let lcm_of_list numbers =
+  match numbers with
+  | [] -> 0 (* LCM is not defined for an empty list *)
+  | x :: xs -> List.fold_left xs ~init:x ~f:lcm
+
+let part2 (instructions : instructions_t) : int =
+  let rec walk (current : string) (turns_left : turn_t list) (prev_steps : int) : int =
+    let turns = match turns_left with
+      | [] -> instructions.turns
+      | x -> x
+    in
+    if is_end_node current then prev_steps
+    else
+      let left_turn, right_turn = Hashtbl.find_exn instructions.network current in
+      let dir = List.hd_exn turns in
+      let next = match dir with
+        | Left -> left_turn
+        | Right -> right_turn
+      in
+      begin
+        walk next (List.tl_exn turns) (prev_steps + 1)
+      end
+  in
+  let start_nodes = Hashtbl.keys instructions.network |> List.filter ~f:is_start_node in
+  let cycles = List.map start_nodes ~f:(fun node ->
+    walk node instructions.turns 0
+  ) in
+  List.iter cycles ~f:(fun x -> printf "%d\n" x);
+  lcm_of_list cycles
+
+
 let () =
   let lines = read_input "bin/d08/input.txt" in
   let instructions = parse_input lines in
   begin
-    printf "Part 1: %d\n" (part1 instructions);
+    (* printf "Part 1: %d\n" (part1 instructions); *)
+    let _ = part1 in
+    printf "Part 2: %d\n" (part2 instructions);
   end
