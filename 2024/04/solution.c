@@ -52,10 +52,37 @@ int part1(const char **input, int rows, int cols) {
 #undef GET
 }
 
+int part2(const char **input, int rows, int cols) {
+#define GET(r, c)                                                              \
+  (((r) >= 0 && (r) < rows && (c) >= 0 && (c) < cols) ? input[r][c] : ' ')
+
+  int total = 0;
+
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < cols; col++) {
+      if (GET(row + 1, col + 1) == 'A' &&
+          (GET(row, col) == 'M' && GET(row + 2, col + 2) == 'S' ||
+           GET(row, col) == 'S' && GET(row + 2, col + 2) == 'M') &&
+          (GET(row, col + 2) == 'M' && GET(row + 2, col) == 'S' ||
+           GET(row, col + 2) == 'S' && GET(row + 2, col) == 'M')) {
+        total++;
+      }
+    }
+  }
+
+  return total;
+
+#undef GET
+}
+
 int main() {
   printf("Sample part 1 solution: %d\n",
          part1(sample, ARRSIZE(sample), strlen(sample[0])));
   printf("Part 1 solution: %d\n",
          part1(input, ARRSIZE(input), strlen(input[0])));
+  printf("Sample part 2 solution: %d\n",
+         part2(sample, ARRSIZE(sample), strlen(sample[0])));
+  printf("Part 2 solution: %d\n",
+         part2(input, ARRSIZE(input), strlen(input[0])));
   return 0;
 }
