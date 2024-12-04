@@ -76,11 +76,11 @@ int part2(const char **input, int rows, int cols) {
 }
 
 int main() {
-  printf("Sample part 1 solution: %d\n",
+  printf("Part 1 sample: %d\n",
          part1(sample, ARRSIZE(sample), strlen(sample[0])));
   printf("Part 1 solution: %d\n",
          part1(input, ARRSIZE(input), strlen(input[0])));
-  printf("Sample part 2 solution: %d\n",
+  printf("Part 2 sample: %d\n",
          part2(sample, ARRSIZE(sample), strlen(sample[0])));
   printf("Part 2 solution: %d\n",
          part2(input, ARRSIZE(input), strlen(input[0])));
