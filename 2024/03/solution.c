@@ -87,6 +87,22 @@ int part1(const char *input) {
   return sum;
 }
 
+int part2(const char *input) {
+  bool mul_enabled = true;
+  int sum = 0;
+  int a, b;
+  for (const char *str = input; *str; str++) {
+    if (strncmp(str, "don't()", strlen("don't()")) == 0) {
+      mul_enabled = false;
+    } else if (strncmp(str, "do()", strlen("do()")) == 0) {
+      mul_enabled = true;
+    } else if (mul_enabled && match(str, &a, &b)) {
+      sum += a * b;
+    }
+  }
+  return sum;
+}
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     fprintf(stderr, "Usage: %s FILE\n", argv[0]);
@@ -97,4 +113,7 @@ int main(int argc, char **argv) {
   assert(input);
 
   printf("Part 1 solution: %d\n", part1(input));
+  printf("Part 2 solution: %d\n", part2(input));
+
+  free(input);
 }
