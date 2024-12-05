@@ -42,6 +42,7 @@ int midpoint(int *update) { return update[update_len(update) / 2]; }
 void fix_update(int *update) {
   while (!is_valid(update)) {
     for (int i = 0; i < ARRSIZE(rules); i++) {
+      // Find an offending rule and swap the numbers.
       int left = rules[i].left;
       int right = rules[i].right;
 
