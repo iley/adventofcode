@@ -6,13 +6,6 @@
 // #include "sample.h"
 #include "input.h"
 
-void print_update(int *update) {
-  for (int i = 0; update[i]; i++) {
-    printf("%d, ", update[i]);
-  }
-  printf("\n");
-}
-
 bool is_valid(int *update) {
   for (int i = 0; i < ARRSIZE(rules); i++) {
     int left = rules[i].left;
@@ -29,7 +22,6 @@ bool is_valid(int *update) {
     }
 
     if (lpos != -1 && rpos != -1 && lpos > rpos) {
-      // printf("Rule broken! %d > %d\n", lpos, rpos);
       return false;
     }
   }
@@ -75,10 +67,7 @@ void fix_update(int *update) {
 int part1() {
   int sum = 0;
   for (int i = 0; i < ARRSIZE(updates); i++) {
-    // print_update(updates[i]);
     if (is_valid(updates[i])) {
-      int mid = midpoint(updates[i]);
-      // printf("valid! midpoint = %d\n", mid);
       sum += midpoint(updates[i]);
     }
   }
@@ -88,7 +77,6 @@ int part1() {
 int part2() {
   int sum = 0;
   for (int i = 0; i < ARRSIZE(updates); i++) {
-    // print_update(updates[i]);
     if (is_valid(updates[i])) {
       continue;
     }
@@ -101,7 +89,6 @@ int part2() {
 
 int main(int argc, char **argv) {
   printf("Part 1 solution: %d\n", part1());
-  printf("Part 22solution: %d\n", part2());
-
+  printf("Part 2 solution: %d\n", part2());
   return 0;
 }
