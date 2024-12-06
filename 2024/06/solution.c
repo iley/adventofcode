@@ -19,14 +19,37 @@ enum {
   DIR_LEFT = 3,
 };
 
+typedef struct {
+  int *data;
+  int cols;
+  int rows;
+} field_t;
+
+field_t field_new(int rows, int cols) {
+  field_t field;
+  field.data = malloc(sizeof(int) * rows * cols);
+  field.rows = rows;
+  field.cols = cols;
+  return field;
+}
+
+void field_set(field_t field, int row, int col, int value) {
+  field.data[row * field.cols + col] = value;
+}
+
+int field_get(field_t field, int row, int col) {
+  return field.data[row * field.cols + col];
+}
+
 int dir_turn(int dir) { return (dir + 1) % 4; }
 
-int *make_field(const char *input[], int rows, int cols) {
-  int *field = (int *)malloc(rows * cols);
+field_t make_field(const char *input[], int rows, int cols) {
+  field_t field = field_new(rows, cols);
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {
       char ch = input[row][col];
-      field[row * cols + col] = (ch == '#') ? CELL_OCCUPIED : CELL_EMPTY;
+      int value = (ch == '#') ? CELL_OCCUPIED : CELL_EMPTY;
+      field_set(field, row, col, value);
     }
   }
   return field;
@@ -109,9 +132,7 @@ void print_field(int *field, int rows, int cols, int guard_row, int guard_col,
   printf("\n");
 }
 
-void simulate_guard(int *field, int rows, int cols, int guard_row,
-                    int guard_col) {
-#define F(r, c) (field[cols * (r) + (c)])
+void simulate_guard(field_t field, int guard_row, int guard_col) {
   int guard_dir = DIR_UP;
 
   while (1) {
@@ -121,23 +142,21 @@ void simulate_guard(int *field, int rows, int cols, int guard_row,
     int new_guard_col;
     move_guard(guard_row, guard_col, guard_dir, &new_guard_row, &new_guard_col);
 
-    if (new_guard_row < 0 || new_guard_row >= rows || new_guard_col < 0 ||
-        new_guard_col >= cols) {
-      F(guard_row, guard_col) = CELL_VISITED;
+    if (new_guard_row < 0 || new_guard_row >= field.rows || new_guard_col < 0 ||
+        new_guard_col >= field.cols) {
+      field_set(field, guard_row, guard_col, CELL_VISITED);
       break;
     }
 
-    if (F(new_guard_row, new_guard_col) == CELL_OCCUPIED) {
+    if (field_get(field, new_guard_row, new_guard_col) == CELL_OCCUPIED) {
       guard_dir = dir_turn(guard_dir);
       // do not update position
     } else {
-      F(guard_row, guard_col) = CELL_VISITED;
+      field_set(field, guard_row, guard_col, CELL_VISITED);
       guard_row = new_guard_row;
       guard_col = new_guard_col;
     }
   }
-
-#undef F
 }
 
 int part1(const char *input[], int rows, int cols) {
@@ -145,13 +164,13 @@ int part1(const char *input[], int rows, int cols) {
   int guard_col;
   find_guard(input, rows, cols, &guard_row, &guard_col);
 
-  int *field = make_field(input, rows, cols);
-  simulate_guard(field, rows, cols, guard_row, guard_col);
+  field_t field = make_field(input, rows, cols);
+  simulate_guard(field, guard_row, guard_col);
 
   int count = 0;
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {
-      if (field[row * cols + col] == CELL_VISITED) {
+      if (field_get(field, row, col) == CELL_VISITED) {
         count++;
       }
     }
