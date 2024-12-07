@@ -19,13 +19,15 @@ bool can_be_true(long long value, long long *operands, int noperands) {
     return value == operands[0];
   }
 
-  return can_be_true(value - operands[noperands - 1], operands,
-                     noperands - 1) ||
-         can_be_true(value / operands[noperands - 1], operands, noperands - 1);
+  long long last_operand = operands[noperands - 1];
+
+  return can_be_true(value - last_operand, operands, noperands - 1) ||
+         (value % last_operand == 0 &&
+          can_be_true(value / last_operand, operands, noperands - 1));
 }
 
 long part1() {
-  long sum = 0;
+  long long sum = 0;
 
   for (int i = 0; i < ARRSIZE(values); i++) {
     long long val = values[i];
