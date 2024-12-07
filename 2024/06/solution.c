@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,10 +14,10 @@ enum {
 };
 
 enum {
-  DIR_UP = 0,
-  DIR_RIGHT = 1,
-  DIR_DOWN = 2,
-  DIR_LEFT = 3,
+  DIR_UP = 1,
+  DIR_RIGHT = 2,
+  DIR_DOWN = 4,
+  DIR_LEFT = 8,
 };
 
 typedef struct {
@@ -25,26 +26,52 @@ typedef struct {
   int rows;
 } field_t;
 
-field_t field_new(int rows, int cols) {
-  field_t field;
-  field.data = malloc(sizeof(int) * rows * cols);
-  field.rows = rows;
-  field.cols = cols;
-  return field;
+int field_get(field_t field, int row, int col) {
+  return field.data[row * field.cols + col];
 }
 
 void field_set(field_t field, int row, int col, int value) {
   field.data[row * field.cols + col] = value;
 }
 
-int field_get(field_t field, int row, int col) {
-  return field.data[row * field.cols + col];
+field_t field_alloc(int rows, int cols) {
+  field_t field;
+  field.data = malloc(sizeof(int) * rows * cols);
+  field.rows = rows;
+  field.cols = cols;
+
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < cols; col++) {
+      field_set(field, row, col, 0);
+    }
+  }
+
+  return field;
 }
 
-int dir_turn(int dir) { return (dir + 1) % 4; }
+void field_free(field_t field) { free(field.data); }
+
+void field_mark_visited(field_t field, int row, int col, int dir) {
+  int mask = field_get(field, row, col);
+  mask |= dir;
+  field_set(field, row, col, mask);
+}
+
+bool field_is_visited(field_t field, int row, int col, int dir) {
+  int mask = field_get(field, row, col);
+  return (mask & dir) != 0;
+}
+
+int dir_turn(int dir) {
+  int new_dir = dir << 1;
+  if (new_dir > 8) {
+    new_dir = 1;
+  }
+  return new_dir;
+}
 
 field_t make_field(const char *input[], int rows, int cols) {
-  field_t field = field_new(rows, cols);
+  field_t field = field_alloc(rows, cols);
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < cols; col++) {
       char ch = input[row][col];
@@ -132,11 +159,21 @@ void print_field(int *field, int rows, int cols, int guard_row, int guard_col,
   printf("\n");
 }
 
-void simulate_guard(field_t field, int guard_row, int guard_col) {
+// returns false if a loop was detected
+bool simulate_guard(field_t field, int guard_row, int guard_col) {
   int guard_dir = DIR_UP;
 
-  while (1) {
+  field_t visit_map = field_alloc(field.rows, field.cols);
+
+  while (true) {
     // print_field(field, rows, cols, guard_row, guard_col, guard_dir);
+
+    if (field_is_visited(visit_map, guard_row, guard_col, guard_dir)) {
+      // loop detected
+      return false;
+    }
+
+    field_mark_visited(visit_map, guard_row, guard_col, guard_dir);
 
     int new_guard_row;
     int new_guard_col;
@@ -157,6 +194,8 @@ void simulate_guard(field_t field, int guard_row, int guard_col) {
       guard_col = new_guard_col;
     }
   }
+
+  return true;
 }
 
 int part1(const char *input[], int rows, int cols) {
@@ -176,9 +215,38 @@ int part1(const char *input[], int rows, int cols) {
     }
   }
 
-  return count;
+  field_free(field);
 
-  return 0;
+  return count;
+}
+
+int part2(const char *input[], int rows, int cols) {
+  int guard_row;
+  int guard_col;
+  find_guard(input, rows, cols, &guard_row, &guard_col);
+
+  int count = 0;
+
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < cols; col++) {
+      if (input[row][col] != '.') {
+        continue;
+      }
+
+      field_t field = make_field(input, rows, cols);
+
+      field_set(field, row, col, CELL_OCCUPIED);
+
+      if (!simulate_guard(field, guard_row, guard_col)) {
+        // loop detected
+        count++;
+      }
+
+      field_free(field);
+    }
+  }
+
+  return count;
 }
 
 int main() {
@@ -187,11 +255,14 @@ int main() {
 
   printf("Part 1 sample solution: %d\n",
          part1(sample, sample_rows, sample_cols));
+  printf("Part 2 sample solution: %d\n",
+         part2(sample, sample_rows, sample_cols));
 
   int rows = ARRSIZE(input);
   int cols = strlen(input[0]);
 
   printf("Part 1 solution: %d\n", part1(input, rows, cols));
+  printf("Part 2 solution: %d\n", part2(input, rows, cols));
 
   return 0;
 }
