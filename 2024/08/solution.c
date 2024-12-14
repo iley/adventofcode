@@ -8,6 +8,7 @@
 #include "input.h"
 
 #define ARRSIZE(x) (sizeof(x) / sizeof(x[0]))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 typedef struct {
   char id;
@@ -128,7 +129,7 @@ int part2(antenna_t *antennae, int rows, int cols) {
         int a2_row = antennae[k].row;
         int a2_col = antennae[k].col;
 
-        for (int k = 0; k < 50; k++) {
+        for (int k = 0; k < MAX(rows, cols); k++) {
           int anode1_row = a1_row - (a2_row - a1_row) * k;
           int anode1_col = a1_col - (a2_col - a1_col) * k;
 
