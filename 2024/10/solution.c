@@ -11,6 +11,11 @@ typedef struct {
   int cols;
 } map_t;
 
+enum {
+  COUNT_SUMMITS = 0,
+  COUNT_TRAILS = 1,
+};
+
 map_t map_alloc(int rows, int cols) {
   map_t map = {
       .data = (int *)malloc(sizeof(int) * rows * cols),
@@ -33,9 +38,11 @@ void map_set(map_t map, int row, int col, int value) {
   map.data[row * map.cols + col] = value;
 }
 
-int dfs(map_t map, map_t visited, int row, int col) {
+int dfs(int method, map_t map, map_t visited, int row, int col) {
   if (map_get(map, row, col) == 9) {
-    map_set(visited, row, col, 1);
+    if (method == COUNT_SUMMITS) {
+      map_set(visited, row, col, 1);
+    }
     return 1;
   }
 
@@ -60,25 +67,25 @@ int dfs(map_t map, map_t visited, int row, int col) {
       continue;
     }
 
-    sum += dfs(map, visited, next_row, next_col);
+    sum += dfs(method, map, visited, next_row, next_col);
   }
 
   return sum;
 }
 
-int trailhead_score(map_t map, int row, int col) {
+int trailhead_score(int method, map_t map, int row, int col) {
   map_t visited = map_alloc(map.rows, map.cols);
-  int result = dfs(map, visited, row, col);
+  int result = dfs(method, map, visited, row, col);
   map_free(visited);
   return result;
 }
 
-int part1(map_t map) {
+int map_score(int method, map_t map) {
   int score_sum = 0;
   for (int row = 0; row < map.rows; row++) {
     for (int col = 0; col < map.cols; col++) {
       if (map_get(map, row, col) == 0) {
-        int score = trailhead_score(map, row, col);
+        int score = trailhead_score(method, map, row, col);
         // printf("trailhead score for (%d, %d) is %d\n", row, col, score);
         score_sum += score;
       }
@@ -86,6 +93,10 @@ int part1(map_t map) {
   }
   return score_sum;
 }
+
+int part1(map_t map) { return map_score(COUNT_SUMMITS, map); }
+
+int part2(map_t map) { return map_score(COUNT_TRAILS, map); }
 
 int main() {
   printf("-- sample --\n");
@@ -95,6 +106,7 @@ int main() {
       .cols = sample_cols,
   };
   printf("part 1: %d\n", part1(sample_map));
+  printf("part 2: %d\n", part2(sample_map));
 
   printf("-- solution --\n");
   map_t map = {
@@ -103,5 +115,6 @@ int main() {
       .cols = input_cols,
   };
   printf("part 1: %d\n", part1(map));
+  printf("part 2: %d\n", part2(map));
   return 0;
 }
