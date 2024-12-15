@@ -1,56 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
+
 #include "input.h"
 
 #define ARRSIZE(x) (sizeof(x) / sizeof(x[0]))
 
-typedef struct pebble_t {
+typedef struct {
+  long long key;
   long long value;
-  struct pebble_t *next;
-} pebble_t;
+} entry_t;
 
-pebble_t *pebbles_new(int *input, int input_size) {
-  pebble_t *head = NULL;
-  pebble_t *tail = NULL;
-
-  for (int i = 0; i < input_size; i++) {
-    pebble_t *new_pebble = (pebble_t *)malloc(sizeof(pebble_t));
-
-    new_pebble->value = input[i];
-    new_pebble->next = NULL;
-
-    if (head == NULL) {
-      head = new_pebble;
-    } else {
-      tail->next = new_pebble;
-    }
-
-    tail = new_pebble;
-  }
-
-  return head;
-}
-
-void pebbles_free(pebble_t *head) {
-  if (head == NULL) {
-    return;
-  }
-
-  while (head) {
-    pebble_t *new_head = head->next;
-    free(head);
-    head = new_head;
-  }
-}
-
-long long pebbles_len(pebble_t *head) {
-  long long len = 0;
-  for (pebble_t *p = head; p; p = p->next) {
-    len++;
-  }
-  return len;
-}
+entry_t *cache;
 
 int digits_len(long long value) {
   int len = 0;
@@ -69,58 +32,61 @@ long long pow10(int pow) {
   return result;
 }
 
-pebble_t *step(pebble_t *head) {
-  for (pebble_t *p = head; p; p = p->next) {
-    if (p->value == 0) {
-      // printf("0 -> 1\n");
-      p->value = 1;
-      continue;
-    }
+long long blink(long long value, int steps);
 
-    int dlen = digits_len(p->value);
-    if (dlen % 2 == 0) {
-      long long factor = pow10(dlen / 2);
-      long long left_value = p->value / factor;
-      long long right_value = p->value % factor;
+long long blink_cached(long long value, int steps) {
+  int cache_key = value * 100 + steps;
 
-      /*
-      printf("split %lld to %lld and %lld (factor = %lld\n", p->value,
-             left_value, right_value, factor);
-             */
-
-      p->value = left_value;
-      pebble_t *new_pebble = (pebble_t *)malloc(sizeof(pebble_t));
-      new_pebble->value = right_value;
-      new_pebble->next = p->next;
-      p->next = new_pebble;
-
-      // skip the new pebble
-      p = p->next;
-      continue;
-    }
-
-    // printf("%lld * 2024 = %lld\n", p->value, p->value * 2024);
-    p->value *= 2024;
+  entry_t *cache_entry = hmgetp_null(cache, cache_key);
+  if (cache_entry) {
+    return cache_entry->value;
   }
 
-  return head;
+  long long result = blink(value, steps);
+  hmput(cache, cache_key, result);
+  return result;
 }
 
-long long part1(int *input, int input_size) {
-  pebble_t *head = pebbles_new(input, input_size);
-
-  for (int i = 0; i < 25; i++) {
-    head = step(head);
+long long blink(long long value, int steps) {
+  if (steps == 0) {
+    return 1;
   }
 
-  return pebbles_len(head);
+  if (value == 0) {
+    return blink_cached(1, steps - 1);
+  }
+
+  int dlen = digits_len(value);
+  if (dlen % 2 == 0) {
+    int factor = pow10(dlen / 2);
+    long long left_value = value / factor;
+    long long right_value = value % factor;
+
+    return blink_cached(left_value, steps - 1) + blink(right_value, steps - 1);
+  }
+
+  return blink_cached(value * 2024, steps - 1);
+}
+
+long long solution(int *input, int input_size, int steps) {
+  cache = NULL;
+
+  long long sum = 0;
+  for (int i = 0; i < input_size; i++) {
+    sum += blink(input[i], steps);
+  }
+
+  hmfree(cache);
+  return sum;
 }
 
 int main() {
   printf("-- sample --\n");
-  printf("part 1: %lld\n", part1(sample, ARRSIZE(sample)));
+  printf("part 1: %lld\n", solution(sample, ARRSIZE(sample), 25));
 
   printf("-- answer --\n");
-  printf("part 1: %lld\n", part1(input, ARRSIZE(input)));
+  printf("part 1: %lld\n", solution(input, ARRSIZE(input), 25));
+  printf("part 2: %lld\n", solution(input, ARRSIZE(input), 75));
+
   return 0;
 }
