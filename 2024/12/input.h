@@ -11,6 +11,18 @@ const char *sample = "RRRRIICCFF"
                      "MIIISIJEEE"
                      "MMMISSJEEE";
 
+/*
+int sample_rows = 6;
+int sample_cols = 6;
+const char *sample =
+  "AAAAAA"
+  "AAABBA"
+  "AAABBA"
+  "ABBAAA"
+  "ABBAAA"
+  "AAAAAA";
+*/
+
 const int input_rows = 140;
 const int input_cols = 140;
 const char *input =

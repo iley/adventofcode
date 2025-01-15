@@ -1,4 +1,4 @@
-solution: solution.c
+solution: solution.c input.h stb_ds.h
 	$(CC) -g -o solution solution.c
 
 run: solution
