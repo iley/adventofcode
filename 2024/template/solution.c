@@ -2,7 +2,7 @@
 
 #define ARRSIZE(x) (sizeof(x) / sizeof(x[0]))
 
-int main() {
+int main(void) {
   printf("Hello, World!\n");
   return 0;
 }
