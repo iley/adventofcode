@@ -1,7 +1,7 @@
 #define NROWS 10
 #define NCOLS 10
 
-char *map[] = {
+char *input_map[] = {
     "..@@.@@@@.", //
     "@@@.@.@.@@", //
     "@@@@@.@.@@", //

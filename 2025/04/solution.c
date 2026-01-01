@@ -4,6 +4,8 @@
 // #include "sample_input.c"
 #include "input.c"
 
+char map[NROWS][NCOLS];
+
 int hasroll(int row, int col) {
   if (row < 0 || row > NROWS - 1 || col < 0 || col > NCOLS - 1)
     return false;
@@ -27,21 +29,54 @@ int part1(void) {
   int count = 0;
   for (int row = 0; row < NROWS; row++) {
     for (int col = 0; col < NCOLS; col++) {
-      if (hasroll(row, col) && neighbours(row, col) < 4) {
+      if (hasroll(row, col) && neighbours(row, col) < 4)
         count++;
-        putchar('x');
-      } else if (hasroll(row, col)) {
-        putchar('@');
-      } else {
-        putchar('.');
-      }
     }
-    printf("\n");
   }
   return count;
 }
 
+int remove_accessible_rolls(void) {
+  static char newmap[NROWS][NCOLS];
+
+  int count = 0;
+  for (int row = 0; row < NROWS; row++) {
+    for (int col = 0; col < NCOLS; col++) {
+      if (hasroll(row, col) && neighbours(row, col) < 4) {
+        newmap[row][col] = '.';
+        count++;
+      } else {
+        newmap[row][col] = map[row][col];
+      }
+    }
+  }
+
+  for (int row = 0; row < NROWS; row++)
+    for (int col = 0; col < NCOLS; col++)
+      map[row][col] = newmap[row][col];
+
+  return count;
+}
+
+int part2(void) {
+  int total = 0;
+
+  while (true) {
+    int removed = remove_accessible_rolls();
+    if (removed == 0)
+      break;
+
+    total += removed;
+  }
+
+  return total;
+}
+
 int main(void) {
-  printf("part 1: %d\n", part1());
+  for (int row = 0; row < NROWS; row++)
+    for (int col = 0; col < NCOLS; col++)
+      map[row][col] = input_map[row][col];
+  // printf("part 1: %d\n", part1());
+  printf("part 2: %d\n", part2());
   return 0;
 }
