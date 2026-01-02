@@ -1,70 +1,60 @@
-#include <assert.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 // #include "sample_input.c"
 #include "input.c"
 
-#define STB_DS_IMPLEMENTATION
-#include "stb_ds.h"
-
-typedef struct key_t {
-  int row;
-  int col;
-} key_t;
-
-typedef struct table_t {
-  key_t key;
-  int value;
-} table_t;
-
-table_t *table;
-
 char map[ROWS][COLS] = {0};
+long paths[ROWS][COLS] = {0};
 
-int find_start_col(void) {
+void step(int row) {
+  for (int col = 0; col < COLS; col++) {
+    if (map[row][col] == 'S') {
+      map[row][col] = '|';
+      continue;
+    }
+
+    if (map[row - 1][col] == '|') {
+      if (map[row][col] == '.') {
+        map[row][col] = '|';
+      } else if (map[row][col] == '^') {
+        if (col > 0)
+          map[row][col - 1] = '|';
+        if (col < COLS - 1)
+          map[row][col + 1] = '|';
+      }
+    }
+  }
+}
+
+void mark_map(void) {
+  for (int row = 0; row < ROWS; row++) {
+    step(row);
+  }
+}
+
+long count_paths(void) {
   for (int col = 0; col < COLS; col++)
-    if (map[0][col] == 'S')
-      return col;
+    if (map[ROWS - 1][col] == '|')
+      paths[ROWS - 1][col] = 1;
 
-  return -1;
-}
+  for (int row = ROWS - 2; row >= 0; row--) {
+    for (int col = 0; col < COLS; col++) {
+      if (map[row][col] != '|')
+        continue;
 
-int traverse(int row, int col) {
-  // printf("traverse(%d, %d)\n", row, col);
-
-  if (row >= ROWS - 1)
-    return 1;
-
-  if (map[row][col] == '.' || map[row][col] == 'S')
-    return traverse(row + 1, col);
-
-  if (map[row][col] == '^') {
-    int left = 0;
-    if (col > 0)
-      left = traverse(row + 1, col - 1);
-
-    int right = 0;
-    if (col < COLS - 1)
-      right = traverse(row + 1, col + 1);
-
-    return left + right;
+      if (map[row + 1][col] == '^') {
+        paths[row][col] = paths[row + 1][col - 1] + paths[row + 1][col + 1];
+      } else {
+        paths[row][col] = paths[row + 1][col];
+      }
+    }
   }
 
-  assert(false);
-  return -1;
-}
+  long total = 0;
+  for (int col = 0; col < COLS; col++)
+    total += paths[0][col];
 
-int traverse_mem(int row, int col) {
-  key_t key = {.row = row, .col = col};
-  int idx = hmgeti(table, key);
-  if (idx != -1) {
-    return table[idx].value;
-  }
-
-  int result = traverse(row, col);
-  hmput(table, key, result);
-  return result;
+  return total;
 }
 
 int main(void) {
@@ -72,10 +62,10 @@ int main(void) {
     for (int col = 0; col < COLS; col++)
       map[row][col] = input_strings[row][col];
 
-  int start_col = find_start_col();
-  assert(start_col != -1);
-  int answer = traverse_mem(0, start_col);
-  printf("%d\n", answer);
+  mark_map();
+  long answer = count_paths();
+
+  printf("%ld\n", answer);
 
   return 0;
 }
